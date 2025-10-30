@@ -14,8 +14,7 @@ JOIN categorias c ON l.categoria_id = c.categoria_id
 WHERE l.quantidade_disponivel > 0
 ORDER BY l.titulo;
 
--- JUSTIFICATIVA: Esta view é essencial para usuários buscarem livros disponíveis
--- sem precisar conhecer a complexidade das junções entre tabelas
+-- Justificando: Esta view é essencial para usuários buscarem livros disponíveis sem precisar conhecer as junções da tabela
 
 CREATE VIEW vw_emprestimos_ativos AS
 SELECT 
@@ -36,5 +35,4 @@ JOIN livros l ON e.livro_id = l.livro_id
 WHERE e.status = 'ativo'
 ORDER BY e.data_devolucao_prevista ASC;
 
--- JUSTIFICATIVA: Fornece uma visão consolidada para gestão de empréstimos,
--- facilitando acompanhamento de prazos e identificação de possíveis atrasos
+-- Justificativa: Fornece uma visão melhor para gestão de empréstimos facilitando acompanhamento de prazos e identificação de atrasos
