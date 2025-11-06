@@ -14,8 +14,7 @@ CREATE INDEX idx_livro_titulo ON livros(titulo);
 
 CREATE INDEX idx_livro_disponivel ON livros(quantidade_disponivel);
 
--- 5. Índice em emprestimos.
-Verificações diárias de empréstimos próximos do vencimento
+-- Índice em emprestimos = Verificações diárias de empréstimos próximos do vencimento
 
 data_devolucao_prevista
 CREATE INDEX idx_emprestimo_devolucao ON emprestimos(data_devolucao_prevista);
