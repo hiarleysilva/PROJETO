@@ -197,7 +197,7 @@ def log_activity(usuario_id: str, acao: str, detalhes: dict):
     log_document = {
         'timestamp': datetime.now(),
         'usuario_id': usuario_id, # ID do MySQL (ex: MAR25U000003)
-        'acao': acao,             # Ex: 'LOGIN_SUCESSO', 'EMPRESTIMO_REALIZADO'
+        'acao': acao,              # Ex: 'LOGIN_SUCESSO', 'EMPRESTIMO_REALIZADO'
         'detalhes': detalhes,
         # Adicionar o ID do atendente logado/API Key se houver
         'responsavel': MYSQL_CONFIG['user'] 
@@ -221,11 +221,15 @@ API_USER_ID = 'FUNC24U000001' # ID fictício para logs
 def criar_usuario():
     """Cria um novo usuário na tabela 'usuarios'."""
     data = request.get_json()
-    required_fields = ['nome', 'email', 'grupo_id', 'senha_hash']
+    
+    # --- CORREÇÃO APLICADA AQUI ---
+    # Removido 'senha_hash' dos campos obrigatórios
+    required_fields = ['nome', 'email', 'grupo_id']
 
     if not all(field in data for field in required_fields):
         log_activity(API_USER_ID, 'ERRO_API', {'endpoint': '/usuarios', 'erro': 'Campos obrigatórios faltando'})
-        return jsonify({"erro": "Campos obrigatórios faltando: nome, email, grupo_id, senha_hash"}), 400
+        # Mensagem de erro atualizada
+        return jsonify({"erro": "Campos obrigatórios faltando: nome, email, grupo_id"}), 400
 
     # 1. Gerar ID customizado usando a lógica Python
     new_user_id = generate_user_id(data['nome'])
@@ -238,17 +242,21 @@ def criar_usuario():
 
     try:
         cursor = conn.cursor()
+        
+        # --- CORREÇÃO APLICADA AQUI ---
+        # Removido 'senha_hash' do INSERT
         sql = """
-            INSERT INTO usuarios (usuario_id, grupo_id, nome, email, senha_hash)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO usuarios (usuario_id, grupo_id, nome, email)
+            VALUES (%s, %s, %s, %s)
         """
+        # Removido data['senha_hash'] da tupla de execução
         cursor.execute(sql, (
             new_user_id, 
             data['grupo_id'], 
             data['nome'], 
-            data['email'], 
-            data['senha_hash']
+            data['email']
         ))
+        
         conn.commit()
         
         log_activity(API_USER_ID, 'USUARIO_CRIADO', {
@@ -460,7 +468,7 @@ def buscar_logs():
     Demonstra a leitura de dados não-estruturados.
     """
     log_collection = get_mongo_collection()
-    if not log_collection:
+    if log_collection is None:
         return jsonify({"erro": "Falha na conexão com o MongoDB"}), 500
     
     try:
