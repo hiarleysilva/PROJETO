@@ -1,0 +1,134 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    color: #1a2b4d;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    flex: 1;
+    min-width: 400px; /* Garante que os cartões não fiquem muito estreitos */
+}
+
+/* --- AJUSTADO --- */
+.form-grid {
+    display: grid;
+    /* Coluna da label se ajusta ao texto, input ocupa o resto */
+    grid-template-columns: auto 1fr; 
+    gap: 14px; /* Aumentei um pouco o espaço */
+    align-items: center;
+}
+
+/* --- AJUSTADO --- */
+.form-grid label {
+    font-weight: 600;
+    text-align: right; /* Alinha labels à direita */
+}
+
+/* --- NOVA REGRA --- */
+/* Faz o título ocupar as 2 colunas */
+.form-grid h3 {
+    grid-column: 1 / -1; /* Ocupa da primeira à última coluna */
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; 
+}
+
+/* --- AJUSTADO --- */
+/* Estilo base do botão (sem 'grid-column') */
+button {
+    background-color: #007bff;
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    /* Removido: 'grid-column: 2;' */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* --- NOVA REGRA --- */
+/* Faz os botões DENTRO do form ocuparem 2 colunas */
+.form-grid button {
+    grid-column: 1 / -1;
+    margin-top: 10px; /* Adiciona espaço acima do botão */
+}
+
+
+#btn-get-logs {
+    background-color: #28a745;
+    margin-bottom: 15px;
+    width: 100%; /* Faz o botão de log ocupar a largura */
+    /* 'grid-column' não se aplica aqui, pois não está no grid */
+}
+#btn-get-logs:hover {
+    background-color: #218838;
+}
+
+/* Área de Logs */
+#logs-output {
+    background-color: #2b2b2b;
+    color: #f0f0f0;
+    padding: 15px;
+    border-radius: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9em;
+    white-space: pre-wrap; 
+    word-wrap: break-word; 
+}
+
+/* Mensagens de Status */
+#status-message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: 600;
+    display: none; 
+}
+.status-success {
+    background-color: #d4edda;
+    color: #155724;
+    display: block !important;
+}
+.status-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    display: block !imporTant;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}

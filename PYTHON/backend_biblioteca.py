@@ -2,17 +2,19 @@ import os
 import random
 import string
 import time
-from flask_cors import CORS
 from datetime import datetime, date, timedelta
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error as MySQLError
 from pymongo import MongoClient, errors as MongoError
 
 # ======================================================================
-# CONFIGURAÇÕES DE AMBIENTE E CONEXÃO (VARIÁVEIS GLOBAIS)
+# CONFIGURAÇÕES DE AMBIENTE E CONEXÃO
+# ATENÇÃO: SUBSTITUA COM SUAS PRÓPRIAS CREDENCIAIS
 # ======================================================================
 
+# Configuração do MySQL (Usando o perfil de Funcionário para operações CRUD)
 MYSQL_CONFIG = {
     'host': 'localhost',
     'database': 'biblioteca_db',
@@ -20,17 +22,13 @@ MYSQL_CONFIG = {
     'password': 'SenhaFunc123!'
 }
 
+# Configuração do MongoDB
 MONGO_URI = 'mongodb://localhost:27017/'
 MONGO_DB_NAME = 'biblioteca_db'
 MONGO_LOG_COLLECTION = 'atividade_logs'
 
-# ======================================================================
-# INICIALIZAÇÃO DO FLASK E CORS (ORDEM CORRETA)
-# ======================================================================
-
-# 1. CRIAÇÃO: Esta linha DEVE vir antes de qualquer uso de 'app'.
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*", "expose_headers": "Authorization"}})
+CORS(app)
 
 # ======================================================================
 # FUNÇÕES DE CONEXÃO COM BANCOS DE DADOS
@@ -45,13 +43,36 @@ def get_mysql_connection():
         print(f"Erro ao conectar ao MySQL: {e}")
         return None
 
+def get_mongo_collection():
+    """Tenta estabelecer conexão MongoDB e retorna a coleção de logs."""
+    try:
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping') # Verifica a conexão
+        db = client[MONGO_DB_NAME]
+        # Cria a coleção Capped se não existir (apenas para inicialização)
+        if MONGO_LOG_COLLECTION not in db.list_collection_names():
+            # Esta parte é idealmente executada no Shell, mas está aqui para segurança
+            print("AVISO: Coleção de logs do MongoDB não encontrada. Criando...")
+            db.create_collection(
+                MONGO_LOG_COLLECTION,
+                capped=True,
+                size=5242880, # 5MB
+                max= 5000
+            )
+        return db[MONGO_LOG_COLLECTION]
+    except MongoError as e:
+        print(f"Erro ao conectar ao MongoDB: {e}")
+        return None
+
 # ======================================================================
 # LÓGICA DE NEGÓCIO - REPLICANDO FUNÇÕES DE GERAÇÃO DE ID DO MYSQL
+# As regras customizadas de ID são recriadas no Python para inserção.
 # ======================================================================
 
 def generate_custom_id(name, prefix, length_name, length_seq, separator, table_name):
     """
     Função genérica para replicar a lógica de geração de IDs customizados.
+    Necessita de uma consulta ao MySQL para obter a sequência.
     """
     conn = get_mysql_connection()
     if not conn:
@@ -59,15 +80,20 @@ def generate_custom_id(name, prefix, length_name, length_seq, separator, table_n
 
     try:
         cursor = conn.cursor(dictionary=True)
+        # 1. Cria a base do ID
         base_name = name.upper().replace(' ', '')
         base_id = base_name[:length_name]
+
+        # 2. Constrói o padrão LIKE para contar IDs existentes
         search_pattern = f"{base_id}%{separator}%"
-        
+
+        # 3. Consulta a sequência atual (count + 1)
         query = f"SELECT COUNT(*) as count FROM {table_name} WHERE {table_name[:-1]}_id LIKE '{search_pattern}';"
         cursor.execute(query)
         result = cursor.fetchone()
         sequence = result['count'] + 1
 
+        # 4. Formata o novo ID
         sequence_padded = str(sequence).zfill(length_seq)
         new_id = f"{base_id}{separator}{sequence_padded}"
         return new_id
@@ -90,12 +116,13 @@ def generate_user_id(name):
         cursor = conn.cursor(dictionary=True)
         search_pattern = f"{base_name}{year}{separator}%"
         
+        # Consulta a sequência atual
         query = f"SELECT COUNT(*) AS count FROM usuarios WHERE usuario_id LIKE '{search_pattern}';"
         cursor.execute(query)
         result = cursor.fetchone()
         sequence = result['count'] + 1
         
-        sequence_padded = str(sequence).zfill(6)
+        sequence_padded = str(sequence).zfill(6) # 6 dígitos de sequência
         new_id = f"{base_name}{year}{separator}{sequence_padded}"
         return new_id
     except MySQLError as e:
@@ -122,7 +149,7 @@ def generate_livro_id(title, year):
         result = cursor.fetchone()
         sequence = result['count'] + 1
         
-        sequence_padded = str(sequence).zfill(6)
+        sequence_padded = str(sequence).zfill(6) # 6 dígitos de sequência
         new_id = f"{base_title}{year_suffix}{separator}{sequence_padded}"
         return new_id
     except MySQLError as e:
@@ -148,7 +175,7 @@ def generate_autor_id(name):
         result = cursor.fetchone()
         sequence = result['count'] + 1
         
-        sequence_padded = str(sequence).zfill(5)
+        sequence_padded = str(sequence).zfill(5) # 5 dígitos de sequência
         new_id = f"{base_name}{separator}{sequence_padded}"
         return new_id
     except MySQLError as e:
@@ -157,6 +184,7 @@ def generate_autor_id(name):
     finally:
         conn.close()
 
+
 # ======================================================================
 # FUNÇÃO DE LOG (INTEGRAÇÃO COM MONGODB)
 # ======================================================================
@@ -164,19 +192,16 @@ def generate_autor_id(name):
 def log_activity(usuario_id: str, acao: str, detalhes: dict):
     """Insere um log de atividade na coleção MongoDB (Capped Collection)."""
     log_collection = get_mongo_collection()
-    
-    # --- CORREÇÃO APLICADA AQUI ---
-    # O erro 500 foi causado por esta linha.
-    # O Pymongo exige a verificação 'is None' e não 'not log_collection'.
-    if log_collection is None:
+    if not log_collection:
         print("AVISO: Falha ao conectar ao MongoDB. Log não salvo.")
         return
 
     log_document = {
         'timestamp': datetime.now(),
-        'usuario_id': usuario_id,
-        'acao': acao,
+        'usuario_id': usuario_id, # ID do MySQL (ex: MAR25U000003)
+        'acao': acao,              # Ex: 'LOGIN_SUCESSO', 'EMPRESTIMO_REALIZADO'
         'detalhes': detalhes,
+        # Adicionar o ID do atendente logado/API Key se houver
         'responsavel': MYSQL_CONFIG['user'] 
     }
     
@@ -185,23 +210,30 @@ def log_activity(usuario_id: str, acao: str, detalhes: dict):
     except Exception as e:
         print(f"Erro ao inserir log no MongoDB: {e}")
 
+
 # ======================================================================
 # ROTAS DA API (FLASK)
 # ======================================================================
 
-API_USER_ID = 'FUNC24U000001'
+# Simulação de ID de Usuário Logado para Logs
+# Em um sistema real, este seria obtido via token de autenticação.
+API_USER_ID = 'FUNC24U000001' # ID fictício para logs
 
 @app.route('/usuarios', methods=['POST'])
 def criar_usuario():
     """Cria um novo usuário na tabela 'usuarios'."""
     data = request.get_json()
     
+    # --- CORREÇÃO APLICADA AQUI ---
+    # Removido 'senha_hash' dos campos obrigatórios
     required_fields = ['nome', 'email', 'grupo_id']
 
     if not all(field in data for field in required_fields):
         log_activity(API_USER_ID, 'ERRO_API', {'endpoint': '/usuarios', 'erro': 'Campos obrigatórios faltando'})
+        # Mensagem de erro atualizada
         return jsonify({"erro": "Campos obrigatórios faltando: nome, email, grupo_id"}), 400
 
+    # 1. Gerar ID customizado usando a lógica Python
     new_user_id = generate_user_id(data['nome'])
     if not new_user_id:
         return jsonify({"erro": "Falha ao gerar ID customizado"}), 500
@@ -213,10 +245,13 @@ def criar_usuario():
     try:
         cursor = conn.cursor()
         
+        # --- CORREÇÃO APLICADA AQUI ---
+        # Removido 'senha_hash' do INSERT
         sql = """
             INSERT INTO usuarios (usuario_id, grupo_id, nome, email)
             VALUES (%s, %s, %s, %s)
         """
+        # Removido data['senha_hash'] da tupla de execução
         cursor.execute(sql, (
             new_user_id, 
             data['grupo_id'], 
@@ -237,7 +272,6 @@ def criar_usuario():
     except MySQLError as e:
         conn.rollback()
         error_msg = f"Erro MySQL: {e}"
-        # Agora que o log_activity está corrigido, esta linha vai funcionar
         log_activity(API_USER_ID, 'ERRO_BD', {'endpoint': '/usuarios', 'erro': error_msg})
         return jsonify({"erro": error_msg}), 500
     finally:
@@ -248,6 +282,7 @@ def criar_usuario():
 def adicionar_livro():
     """Adiciona um novo livro, autor e editora se não existirem."""
     data = request.get_json()
+    # Campos obrigatórios para o livro
     required_fields = ['titulo', 'autor_nome', 'editora_nome', 'categoria_id', 'ano_publicacao', 'quantidade_total']
 
     if not all(field in data for field in required_fields):
@@ -340,12 +375,18 @@ def realizar_emprestimo():
 
     try:
         cursor = conn.cursor(dictionary=True)
+        # 1. Chamar a Stored Procedure
         args = (data['usuario_id'], data['livro_id'], data['dias_emprestimo'])
+        
+        # A procedure retorna um resultado (mensagem e emprestimo_id)
         cursor.callproc('sp_realizar_emprestimo', args)
+        
+        # Obter o resultado da procedure
         result = [res.fetchall() for res in cursor.stored_results()]
+        
         conn.commit()
         
-        emprestimo_info = result[0][0]
+        emprestimo_info = result[0][0] # Primeiro resultado é a mensagem/ID
         
         log_activity(API_USER_ID, 'EMPRESTIMO_REALIZADO', {
             'usuario_id': data['usuario_id'],
@@ -357,7 +398,8 @@ def realizar_emprestimo():
 
     except MySQLError as e:
         conn.rollback()
-        if e.errno == 1644:
+        # Captura erros gerados pelo SIGNAL da Stored Procedure
+        if e.errno == 1644: # MySQL error code for SIGNAL
             error_msg = str(e).split(':')[-1].strip()
         else:
             error_msg = f"Erro interno do Banco de Dados: {e}"
@@ -391,6 +433,7 @@ def realizar_devolucao():
     try:
         cursor = conn.cursor()
         
+        # Data de devolução real é hoje.
         sql = """
             UPDATE emprestimos SET
             status = 'devolvido',
@@ -403,6 +446,8 @@ def realizar_devolucao():
             return jsonify({"aviso": "Empréstimo não encontrado ou já devolvido"}), 404
 
         conn.commit()
+        
+        # O TRIGGER MySQL executa a lógica de estoque e multa aqui.
         
         log_activity(API_USER_ID, 'DEVOLUCAO_REALIZADA', {
             'emprestimo_id': data['emprestimo_id']
@@ -422,16 +467,18 @@ def realizar_devolucao():
 def buscar_logs():
     """
     Busca os últimos logs de atividade no MongoDB (NoSQL).
+    Demonstra a leitura de dados não-estruturados.
     """
     log_collection = get_mongo_collection()
-    
-    # --- Verificação Corrigida (Similar à correção da outra função) ---
     if log_collection is None:
         return jsonify({"erro": "Falha na conexão com o MongoDB"}), 500
     
     try:
+        # Consulta: Busca os 50 logs mais recentes, ordenados por timestamp decrescente
         recent_logs = list(log_collection.find().sort("timestamp", -1).limit(50))
 
+        # O ObjectId e o datetime precisam ser convertidos para string/JSON
+        # para serem serializados pelo Flask
         serialized_logs = []
         for log in recent_logs:
             log['_id'] = str(log['_id'])
@@ -450,45 +497,5 @@ if __name__ == '__main__':
     print("Iniciando o Backend da Biblioteca...")
     print(f"MySQL DB: {MYSQL_CONFIG['database']} - User: {MYSQL_CONFIG['user']}")
     print(f"MongoDB Collection: {MONGO_LOG_COLLECTION}")
-    app.run(debug=True, port=5000)
-
-@app.route('/login', methods=['POST'])
-def login_usuario():
-    """Verifica se o usuário existe no MySQL e retorna o ID para autenticação."""
-    data = request.get_json()
-    email = data.get('email')
-    
-    conn = get_mysql_connection()
-    if not conn:
-        return jsonify({"erro": "Falha na conexão com o MySQL"}), 500
-
-    try:
-        cursor = conn.cursor(dictionary=True)
-        # Consulta simples, apenas verificando a existência do email (Para protótipo)
-        sql = "SELECT usuario_id, nome, grupo_id FROM usuarios WHERE email = %s AND status = 'ativo'"
-        cursor.execute(sql, (email,))
-        usuario = cursor.fetchone()
-        
-        if usuario:
-            # Sucesso: Registra o login no MongoDB e retorna dados básicos
-            log_activity(usuario['usuario_id'], 'LOGIN_SUCESSO', {'email': email})
-            return jsonify({
-                "mensagem": "Login realizado com sucesso",
-                "usuario_id": usuario['usuario_id'],
-                "nome": usuario['nome'],
-                "grupo": usuario['grupo_id']
-            }), 200
-        else:
-            log_activity(email, 'LOGIN_FALHA', {'email': email, 'erro': 'Usuario nao encontrado ou inativo'})
-            return jsonify({"erro": "Email não encontrado ou usuário inativo"}), 401
-            
-    except MySQLError as e:
-        error_msg = f"Erro MySQL no login: {e}"
-        log_activity(email, 'ERRO_BD_LOGIN', {'erro': error_msg})
-        return jsonify({"erro": error_msg}), 500
-    finally:
-        conn.close()
-
-if __name__ == '__main__':
-    # Apenas como precaução, mas geralmente não é necessário se não tiver argumentos
+    # Nota: Use port 5000 para evitar conflito com outros serviços
     app.run(debug=True, port=5000)

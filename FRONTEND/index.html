@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel da Biblioteca</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Painel de Controle da Biblioteca</h1>
+
+    <div id="status-message"></div>
+
+    <div class="container">
+        <section class="card">
+            <h2>Ações Principais</h2>
+            
+            <form id="form-emprestimo" class="form-grid">
+                <h3>Realizar Empréstimo</h3>
+                <label for="emp-usuario">ID do Usuário:</label>
+                <input type="text" id="emp-usuario" name="usuario_id" placeholder="Ex: JOA25U000001" required>
+                
+                <label for="emp-livro">ID do Livro:</label>
+                <input type="text" id="emp-livro" name="livro_id" placeholder="Ex: ASO24L000001" required>
+                
+                <label for="emp-dias">Dias de Empréstimo:</label>
+                <input type="number" id="emp-dias" name="dias_emprestimo" value="15" required>
+                
+                <button type="submit">Registrar Empréstimo</button>
+            </form>
+
+            <hr>
+
+            <form id="form-devolucao" class="form-grid">
+                <h3>Realizar Devolução</h3>
+                <label for="dev-id">ID do Empréstimo:</label>
+                <input type="text" id="dev-id" name="emprestimo_id" placeholder="Ex: EMP2025..." required>
+                
+                <button type="submit">Registrar Devolução</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Logs do Sistema (MongoDB)</h2>
+            <button id="btn-get-logs">Carregar Logs Mais Recentes</button>
+            <pre id="logs-output">Os logs aparecerão aqui...</pre>
+        </section>
+    </div>
+
+    <div class="container">
+        <section class="card">
+            <h2>Cadastro</h2>
+            
+            <form id="form-usuario" class="form-grid">
+                <h3>Adicionar Novo Usuário</h3>
+                <label for="user-nome">Nome:</label>
+                <input type="text" id="user-nome" name="nome" required>
+                
+                <label for="user-email">Email:</label>
+                <input type="email" id="user-email" name="email" required>
+
+                <label for="user-grupo">ID do Grupo:</label>
+                <input type="text" id="user-grupo" name="grupo_id" value="GRP01" required>
+                
+                <button type="submit">Adicionar Usuário</button>
+            </form>
+            
+            <hr>
+
+            <form id="form-livro" class="form-grid">
+                <h3>Adicionar Novo Livro</h3>
+                <label for="livro-titulo">Título:</label>
+                <input type="text" id="livro-titulo" name="titulo" required>
+
+                <label for="livro-autor">Nome do Autor:</label>
+                <input type="text" id="livro-autor" name="autor_nome" required>
+
+                <label for="livro-editora">Nome da Editora:</label>
+                <input type="text" id="livro-editora" name="editora_nome" required>
+
+                <label for="livro-cat">ID da Categoria:</label>
+                <input type="text" id="livro-cat" name="categoria_id" value="CAT01" required>
+
+                <label for="livro-ano">Ano:</label>
+                <input type="number" id="livro-ano" name="ano_publicacao" value="2025" required>
+
+                <label for="livro-qtd">Qtd. Total:</label>
+                <input type="number" id="livro-qtd" name="quantidade_total" value="10" required>
+                
+                <button type="submit">Adicionar Livro</button>
+            </form>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
