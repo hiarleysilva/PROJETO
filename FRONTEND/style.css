@@ -23,26 +23,21 @@ h1, h2, h3 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     padding: 24px;
     flex: 1;
-    min-width: 400px; /* Garante que os cartões não fiquem muito estreitos */
+    min-width: 400px;
 }
 
-/* --- AJUSTADO --- */
 .form-grid {
     display: grid;
-    /* Coluna da label se ajusta ao texto, input ocupa o resto */
     grid-template-columns: auto 1fr; 
-    gap: 14px; /* Aumentei um pouco o espaço */
+    gap: 14px;
     align-items: center;
 }
 
-/* --- AJUSTADO --- */
 .form-grid label {
     font-weight: 600;
     text-align: right; /* Alinha labels à direita */
 }
 
-/* --- NOVA REGRA --- */
-/* Faz o título ocupar as 2 colunas */
 .form-grid h3 {
     grid-column: 1 / -1; /* Ocupa da primeira à última coluna */
     margin-bottom: 5px;
@@ -58,8 +53,6 @@ input[type="number"] {
     box-sizing: border-box; 
 }
 
-/* --- AJUSTADO --- */
-/* Estilo base do botão (sem 'grid-column') */
 button {
     background-color: #007bff;
     color: white;
@@ -69,26 +62,22 @@ button {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.2s;
-    /* Removido: 'grid-column: 2;' */
 }
 
 button:hover {
     background-color: #0056b3;
 }
 
-/* --- NOVA REGRA --- */
-/* Faz os botões DENTRO do form ocuparem 2 colunas */
 .form-grid button {
     grid-column: 1 / -1;
-    margin-top: 10px; /* Adiciona espaço acima do botão */
+    margin-top: 10px;
 }
 
 
 #btn-get-logs {
     background-color: #28a745;
     margin-bottom: 15px;
-    width: 100%; /* Faz o botão de log ocupar a largura */
-    /* 'grid-column' não se aplica aqui, pois não está no grid */
+    width: 100%;
 }
 #btn-get-logs:hover {
     background-color: #218838;
@@ -131,4 +120,117 @@ hr {
     border: 0;
     border-top: 1px solid #eee;
     margin: 20px 0;
+}
+
+.table-container {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+#tabela-usuarios {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+}
+
+#tabela-usuarios th,
+#tabela-usuarios td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+}
+
+#tabela-usuarios th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    position: sticky; 
+    top: 0;
+}
+
+#tabela-usuarios tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+#tabela-usuarios td {
+    color: #555;
+}
+
+#btn-get-usuarios {
+    background-color: #17a2b8;
+    width: 100%;
+}
+#btn-get-usuarios:hover {
+    background-color: #138496;
+}
+
+#btn-get-livros {
+    background-color: #ffc107;
+    color: #333;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 15px;
+}
+#btn-get-livros:hover {
+    background-color: #e0a800;
+}
+
+.card.full-width {
+    flex: none;
+    width: 100%;
+}
+
+#tabela-livros {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+}
+#tabela-livros th,
+#tabela-livros td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+}
+#tabela-livros th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    position: sticky; 
+    top: 0;
+}
+
+#btn-get-emprestimos {
+    background-color: #dc3545;
+    color: white;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 15px;
+}
+#btn-get-emprestimos:hover {
+    background-color: #c82333;
+}
+
+.overdue {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+#tabela-emprestimos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+}
+#tabela-emprestimos th,
+#tabela-emprestimos td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+}
+#tabela-emprestimos th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    position: sticky; 
+    top: 0;
 }

@@ -10,9 +10,12 @@
 
     <h1>Painel de Controle da Biblioteca</h1>
 
+    <!-- Área de Status para Feedback -->
     <div id="status-message"></div>
 
+    <!-- CONTAINER 1: Ações Principais e Logs -->
     <div class="container">
+        <!-- Seção de Ações Principais -->
         <section class="card">
             <h2>Ações Principais</h2>
             
@@ -41,6 +44,7 @@
             </form>
         </section>
 
+        <!-- Seção de Logs (MongoDB) -->
         <section class="card">
             <h2>Logs do Sistema (MongoDB)</h2>
             <button id="btn-get-logs">Carregar Logs Mais Recentes</button>
@@ -48,7 +52,9 @@
         </section>
     </div>
 
+    <!-- CONTAINER 2: Cadastro e Lista de Usuários -->
     <div class="container">
+        <!-- Seção de Cadastro -->
         <section class="card">
             <h2>Cadastro</h2>
             
@@ -90,6 +96,79 @@
                 
                 <button type="submit">Adicionar Livro</button>
             </form>
+        </section>
+
+        <!-- Seção de Listar Usuários -->
+        <section class="card">
+            <h2>Usuários Cadastrados</h2>
+            <button id="btn-get-usuarios">Listar Todos os Usuários</button>
+            
+            <!-- Tabela para exibir os usuários -->
+            <div class="table-container">
+                <table id="tabela-usuarios">
+                    <thead>
+                        <tr>
+                            <th>ID do Usuário</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios-output">
+                        <!-- Os usuários aparecerão aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+    </div>
+
+    <!-- CONTAINER 3: Lista de Livros (Largura Total) -->
+    <div class="container">
+        <!-- A classe "full-width" será usada no CSS para ocupar 100% -->
+        <section class="card full-width">
+            <h2>Livros Cadastrados (Disponíveis)</h2>
+            <button id="btn-get-livros">Listar Todos os Livros</button>
+            <div class="table-container">
+                <table id="tabela-livros">
+                    <thead>
+                        <tr>
+                            <th>ID do Livro</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Editora</th>
+                            <th>Cóp. Disp.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="livros-output">
+                        <!-- Livros serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- CONTAINER 4: Lista de Empréstimos Ativos (Largura Total) - NOVO BLOCO -->
+    <div class="container">
+        <section class="card full-width">
+            <h2>Empréstimos Ativos (Em Aberto)</h2>
+            <button id="btn-get-emprestimos">Carregar Empréstimos Pendentes</button>
+            <div class="table-container">
+                <table id="tabela-emprestimos">
+                    <thead>
+                        <tr>
+                            <th>ID do Empréstimo</th>
+                            <th>Usuário</th>
+                            <th>Livro</th>
+                            <th>Empréstimo</th>
+                            <th>Vencimento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emprestimos-output">
+                        <!-- Os empréstimos aparecerão aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </section>
     </div>
 

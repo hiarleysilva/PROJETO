@@ -385,6 +385,10 @@ DELIMITER ;
 -- Justificativa: Criação de níveis de acesso para garantir que o usuário 'root' não seja usado e que cada perfil de usuário tenha apenas as permissões mínimas necessárias.
 
 -- Criar usuários específicos
+DROP USER IF EXISTS 'bib_admin'@'localhost';
+DROP USER IF EXISTS 'bib_funcionario'@'localhost';
+DROP USER IF EXISTS 'bib_usuario'@'localhost';
+DROP USER IF EXISTS 'bib_relatorio'@'localhost';
 CREATE USER 'bib_admin'@'localhost' IDENTIFIED BY 'SenhaAdmin123!';
 CREATE USER 'bib_funcionario'@'localhost' IDENTIFIED BY 'SenhaFunc123!';
 CREATE USER 'bib_usuario'@'localhost' IDENTIFIED BY 'SenhaUser123!';
@@ -410,3 +414,30 @@ GRANT SELECT ON biblioteca_db.editoras TO 'bib_usuario'@'localhost';
 GRANT SELECT ON biblioteca_db.* TO 'bib_relatorio'@'localhost';
 
 FLUSH PRIVILEGES;
+USE biblioteca_db;
+
+-- 1. Grupo de usuário necessário para o Teste 1 (Criar Usuário)
+INSERT INTO grupos_usuarios (grupo_id, nome_grupo, permissoes)
+VALUES ('ADM', 'Administradores', '{"all": true}');
+
+-- 2. Categoria necessária para o Teste 2 (Adicionar Livro)
+INSERT INTO categorias (categoria_id, nome, descricao)
+VALUES ('FIC', 'Ficção', 'Livros de ficção e literatura');
+
+-- =====================================
+-- CORRIGINDO BUG NO TESTE 
+-- =======================================
+USE biblioteca_db;
+
+-- 1. Permissão para ler (SELECT) e adicionar (INSERT) na tabela 'autores'
+GRANT SELECT, INSERT ON biblioteca_db.autores TO 'bib_funcionario'@'localhost';
+
+-- 2. Permissão para ler (SELECT) e adicionar (INSERT) na tabela 'editoras'
+GRANT SELECT, INSERT ON biblioteca_db.editoras TO 'bib_funcionario'@'localhost';
+
+-- 3. Permissão para ADICIONAR (INSERT) na tabela 'livros' (você só tinha dado SELECT)
+GRANT INSERT ON biblioteca_db.livros TO 'bib_funcionario'@'localhost';
+
+-- 4. Comando final para aplicar as novas permissões
+FLUSH PRIVILEGES;
+
